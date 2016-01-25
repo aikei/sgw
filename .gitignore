@@ -1,0 +1,9 @@
+/Debug
+/Release
+/CMakeFiles
+Makefile
+sgw
+CMakeCache.txt
+cmake_install.cmake
+main
+cmakeConfig.h
