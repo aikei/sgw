@@ -2,21 +2,26 @@
 #include <sgw/AppData.hpp>
 #include <app/GlutApp.hpp>
 #include <app/GlfwApp.hpp>
-#include <app/gApp.hpp>
 
-sgw::IApp* sgw::App::Create(float windowWidth, float windowHeight)
+sgw::App::App(const AppData& appData)
+{
+    m_pIApp = new GlfwApp();
+    m_pIApp->SetAppData(appData);
+    m_pIApp->Init(appData.videoBackend);
+}
+
+sgw::App::App(float windowWidth, float windowHeight, int videoBackend)
 {
     AppData appData;
     appData.windowSize.width = windowWidth;
     appData.windowSize.height = windowHeight;
-    return Create(appData);
+    appData.videoBackend = videoBackend;
+    m_pIApp = new GlfwApp();
+    m_pIApp->SetAppData(appData);
+    m_pIApp->Init(appData.videoBackend);      
 }
 
-sgw::IApp* sgw::App::Create(const AppData& _appData)
+void sgw::App::Draw(const BaseShape& shape)
 {
-    //IApp* pApp = new GlutApp();
-    IApp* pApp = new GlfwApp();
-    pApp = new GlfwApp();
-    pApp->SetAppData(_appData);
-    return pApp;
+    m_pIApp->Draw(shape);
 }

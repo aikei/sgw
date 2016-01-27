@@ -1,7 +1,7 @@
 #ifndef SGW_BASE_APP_INCLUDED
 #define SGW_BASE_APP_INCLUDED
 
-#include <sgw/IApp.hpp>
+#include "IApp.hpp"
 #include <sgw/AppData.hpp>
 
     

@@ -1,6 +1,7 @@
 /Debug
 /Release
 /CMakeFiles
+/bin
 Makefile
 sgw
 CMakeCache.txt
