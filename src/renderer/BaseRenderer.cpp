@@ -12,7 +12,8 @@ sgw::BaseRenderer::BaseRenderer()
 
 void sgw::BaseRenderer::CheckFlushList(const BaseShape& shape)
 {
-    if (m_flushListCollection.empty() || m_flushListCollection.back().type != shape.GetType())
+    if (m_flushListCollection.empty() || 
+        m_flushListCollection.back().type != shape.GetFlushListType())
     {
         FlushList flushList;
         flushList.type = shape.GetFlushListType();

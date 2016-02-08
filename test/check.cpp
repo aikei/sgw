@@ -1,8 +1,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <sgw/sgw.hpp>
 #include <sgw/Prefs.hpp>
 #include <stdexcept>
+#include <utils/Logger.hpp>
+
 #ifdef SGW_RENDERER_OPENGL
 #include <GL/glew.h>
 #endif
@@ -23,35 +26,68 @@ test::Check::Check(sgw::App& app) : m_app(app)
 
 void test::Check::RunTests()
 {
-    TestDraw("Draw rect test",sgw::BaseShape::SHAPE_RECTANGLE,10);
-    printf("Tests succeeded: %d | Tests failed: %d\n",testsSucceeded,testsFailed);
+    sgw::Logger::LogLevel = sgw::Logger::LOG_LEVEL_DEBUG;
+    TestDraw("Draw filled rect test",sgw::BaseShape::SHAPE_RECTANGLE,true,10);
+    TestDraw("Draw non-filled rect test",sgw::BaseShape::SHAPE_RECTANGLE,false,10);
+    TestDraw("Draw image test",sgw::BaseShape::SHAPE_IMAGE,false,10);
+    sgw::Logger::FLogAlways("Tests succeeded: %d | Tests failed: %d\n",testsSucceeded,testsFailed);
+}
+
+sgw::Color CreateRandomColor()
+{
+    sgw::Color clr = rand() % sgw::Color::WHITE;
+    return clr;
 }
 
 std::unique_ptr<sgw::BaseShape> test::Check::CreateRandomShape(int shapeType)
 {
     const sgw::Size& windowSize = m_app.GetAppData().windowSize;
+    std::unique_ptr<sgw::BaseShape> shpPtr;
+    // get a random x and y, but not 0 and not == screen size-1, 
+    // to be able to check outside border of the primitive   
+    int sw = windowSize.width;
+    int sh = windowSize.height;     
+    int x = (rand() % (sw/2))+1;
+    int y = (rand() % (sh/2))+1;
     switch(shapeType)
-    {
+    {        
         case sgw::BaseShape::SHAPE_RECTANGLE:
-            // get a random x and y, but not 0 and not == screen size-1, 
-            // to be able to check outside border of the primitive
-            int sw = windowSize.width;
-            int sh = windowSize.height;
-            int x = (rand() % (sw-10))+1;
-            int y = (rand() % (sh-10))+1;
-            int x2 = x+(rand() % 300);
-            int y2 = y+(rand() % 300);
-            if (x2 >= sw-1)
-                x2 = sw-2;
-            if (y2 >= sh-1)
-                y2 = sh-2;
-                
-            std::unique_ptr<sgw::BaseShape> rectPtr (new sgw::Rect(x,y,x2,y2));
-            return rectPtr;
-            break;           
+            {
+                int w = rand() % 300;
+                int h = rand() % 300;
+                if (x+w >= sw-1)
+                {
+                    w = sw-2-x;
+                    sgw::Logger::FLogTrace("%s","x+w >= sw-1\n");
+                }
+                if (y+h >= sh-1)
+                {
+                    h = sh-2-y;
+                    sgw::Logger::FLogTrace("%s","y+h >= sh-1\n");
+                }
+                //~ x = 2;
+                //~ y = 2;
+                //~ w = 5;
+                //~ h = 5;
+                sgw::Logger::Logger::FLogDebug("x = %d, y = %d, w = %d, h = %d\n",x,y,w,h);
+                shpPtr.reset(new sgw::Rect(x,y,w,h));
+                shpPtr->SetColor(CreateRandomColor());
+            }
+            break;
+            
+        case sgw::BaseShape::SHAPE_IMAGE:
+            {
+                sgw::Texture* texture = new sgw::Texture("../media/test3.png");
+                shpPtr.reset(new sgw::Image(*texture));
+                shpPtr->SetPos(x,y);
+            }
+            break;
+        
+        default:
+            throw std::runtime_error("wrong shape type!");
+            break;
     }
-    
-    throw std::runtime_error("wrong shape type!");
+    return shpPtr;
 }
 
 
@@ -61,7 +97,7 @@ unsigned int test::Check::CheckPixel(float x, float y)
     sgw::AppData appData = m_app.GetAppData();
     unsigned int clr[1];
     glReadPixels(x, appData.windowSize.height-1-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, clr);
-    printf("clr { %.1f, %.1f } = %X\n",x,y,clr[0]);
+    sgw::Logger::FLogInfo("clr { %.1f, %.1f } = %X\n",x,y,clr[0]);
     return clr[0];
 }
 
@@ -74,79 +110,110 @@ bool test::Check::CheckDraw(const sgw::BaseShape& shape)
     m_app.Render();
     m_app.Render();
     
-    int shapeType = shape.GetType();
-    switch(shapeType)
+    //get the color of the shape to check screen pixels agaist
+    sgw::Color drawColor = shape.GetColor();
+
+    switch(shape.GetType())
     {
         case sgw::BaseShape::SHAPE_RECTANGLE:
-            //we add and subtract 1 from top left and bottom right to check that
-            //the border is of background color
-            const sgw::Rect& rect = static_cast<const sgw::Rect&>(shape);
-            sgw::Vec2 tl = rect.GetTopLeft();
+        case sgw::BaseShape::SHAPE_IMAGE:
+            //we add and subtract 1 from top left and bottom right to
+            //make sure that the border is of background color (0x0)
+            sgw::Vec2 tl = shape.GetPos();
             tl.x -= 1;
             tl.y -= 1;
 
-            sgw::Vec2 br = rect.GetBottomRight();
-            br.x += 1;
-            br.y += 1;
+            sgw::Vec2 br = shape.GetPos()+shape.GetSize();
             
-            //allow some fault tolerance, in pixels
-            const int faultTolerance = 10;
+            //allow some fault tolerance, in pixels, especially for 
+            //non-filled shapes, since lines are imprecise
+            const int faultTolerance = 4;
             int fails = 0;    
             
-            float w = br.x - tl.x+1;
-            unsigned int wi = w;
-            float h = br.y - tl.y+1;
+            //get integer width and height of the whole area to be checked
+            unsigned int wi = br.x-tl.x+1;
+            unsigned int hi = br.y-tl.y+1;
+            sgw::Logger::FLogTrace("\thi = %d, wi = %d\n",hi,wi);
             float x = tl.x;
-            float y = br.y;
-            unsigned int size = w*h;
+            float y = tl.y+shape.GetSize().height+1;
+            unsigned int size = wi*hi;
             //printf("\tsize = %d\n",size);
             unsigned int* pixels = new unsigned int[size];
             sgw::AppData appData = m_app.GetAppData();
-                
-            glReadPixels(x, appData.windowSize.height-1-y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);     
-            
-            for (int i = 0; i < w; i++)
+            unsigned char* imageData = NULL;
+            //if there is a texture (for SHAPE_IMAGE), get raw pixel data
+            if (shape.GetTexture())
             {
-                for (int j = h-1; j >= 0; j--)
+                imageData = shape.GetTexture()->GetRawImageData();
+            }
+            
+            glReadPixels(x, appData.windowSize.height-1-y, wi, hi, GL_RGBA, GL_UNSIGNED_BYTE, pixels);     
+            
+            for (int i = hi-1; i >= 0; i--)
+            {
+                sgw::Logger::FLogInfo("%s","\n\n");
+                for (int j = 0; j < wi; j++)
                 {
-                    unsigned int px = pixels[i+(j*wi)];
-                    //printf("{ %d, %d } = %X;\n",int(tl.x+i),int(tl.y+j),px);
-                    if (i == 0 || j == 0 || i == int(w-1) || j == int(h-1))
+                    unsigned int px = pixels[j+(i*wi)];
+                    px = sgw::Utils::ToBigEndian(px);             
+                    sgw::Logger::FLogTrace("{ %d, %d } = %X;\n",int(tl.x+i),int(tl.y+j),px);
+                    if (i == 0 || j == 0 || i == hi-1 || j == wi-1)
                     {
                         if (px != 0)
                         {
                             fails++;
                             if (fails >= faultTolerance)
                             {
-                                printf("Test failed - outside not black!\n");
+                                sgw::Logger::FLogAlways("Test failed - outside at %d, %d is %X!\n",j,i,px);
                                 return false;                            
                             }
                         }
                     }
                     else
                     {
-                        if (rect.IsFilled())
+                        //if there is texture data, get the color and check
+                        //that the pixel has been drawn where it belongs
+                        if (imageData)
                         {
-                            if (px != 0xFFFFFFFF)
+                            unsigned char clr[4];
+                            unsigned int xx = (j-1)*4;
+                            unsigned int yy = i-1;
+                            unsigned int n = xx+yy*(wi-2)*4;
+                            
+                            for (unsigned int c = 0; c < 4; c++)
+                            {
+                                clr[c] = imageData[n+c];
+                            }                            
+                            drawColor = sgw::Color(clr[0],clr[1],clr[2],clr[3]);
+                            sgw::Logger::FLogInfo("n = %u,xx/yy { %u / %u }, clr = %d %d %d %d drawClr = %X | ",
+                            n,xx/4,yy,clr[0],clr[1],clr[2],clr[3],drawColor.GetHexColor());                          
+                        }
+                        
+                        if (shape.IsFilled())
+                        {
+                            if (!drawColor.AlmostEqual(px))
                             {
                                 fails++;
                                 if (fails >= faultTolerance)
                                 {                                                
-                                    printf("Test failed - filled rect inside color not white!\n");
+                                    sgw::Logger::FLogAlways("Test failed - filled rect"
+                                        " inside color at %u, %u is not"
+                                        " %X but %X!\n",
+                                        j,i,drawColor.GetHexColor(),px);
                                     return false;
                                 }
                             }
                         }
                         else
                         {
-                            if (i == 1 || j == 1 || i == int(w-2) || j == int(h-2))
+                            if (i == 1 || j == 1 || i == hi-2 || j == wi-2)
                             {
-                                if (px != 0xFFFFFFFF)
+                                if (!drawColor.AlmostEqual(px))
                                 {
                                     fails++;
                                     if (fails >= faultTolerance)
                                     {                            
-                                        printf("Test failed - non-filled rect border not white!\n");
+                                        sgw::Logger::FLogAlways("Test failed - non-filled rect border at %d, %d is %X!\n",j,i,px);
                                         return false;
                                     }
                                 }
@@ -158,7 +225,7 @@ bool test::Check::CheckDraw(const sgw::BaseShape& shape)
                                     fails++;
                                     if (fails >= faultTolerance)
                                     {
-                                        printf("Test failed - non-filled rect inside not black!\n");
+                                        sgw::Logger::FLogAlways("Test failed - non-filled rect inside color at %d, %d is %X!\n",j,i,px);
                                         return false; 
                                     }                           
                                 }
@@ -175,31 +242,27 @@ bool test::Check::CheckDraw(const sgw::BaseShape& shape)
 }
 #endif
 
-void test::Check::TestDraw(const char* testName, int shapeType, int numRuns)
+bool test::Check::TestDraw(const char* testName, int shapeType, bool filled, int numRuns)
 {
     testNumber++;
-    //test both filled (t == 1) and non-filled (t == 0) shapes
-    for (int filled = 0; filled < 2; filled++)
+    sgw::Logger::FLogAlways("%d. %s.\n",testNumber,testName);
+    bool success = true;
+    sgw::Logger::FLogAlways("\tRun: ");
+
+    for (int i = 0; i < numRuns; i++)
     {
-        if (filled)
-            printf("%d. %s\n\tOutline shape test.\n\tRun: ",testNumber,testName);
-        else
-            printf("\n\tFilled shape test.\n\tRun: ");
-            
-        for (int i = 0; i < numRuns; i++)
+        sgw::Logger::FLogAlways("%d, ",i);
+        std::unique_ptr<sgw::BaseShape> shapePtr = CreateRandomShape(shapeType);
+        shapePtr->SetFilled((bool)filled);
+        if (!CheckDraw(*shapePtr))
         {
-            printf("%d, ",i);
-            std::unique_ptr<sgw::BaseShape> shapePtr = CreateRandomShape(shapeType);
-            shapePtr->SetFilled((bool)filled);
-            if (!CheckDraw(*shapePtr))
-            {
-                printf("\t%s failed\n\n",testName);
-                testsFailed++;
-                return;
-            }
+            sgw::Logger::FLogAlways("\t%s failed\n\n",testName);
+            testsFailed++;
+            return false;
         }
     }
- 
-    printf("\n\t%s succeeded\n\n",testName);
-    testsSucceeded++;    
+    testsSucceeded++;
+    sgw::Logger::FLogAlways("\n\t%s succeeded\n\n",testName);
+    
+    return true;
 }

@@ -11,6 +11,11 @@
 #include <cerrno>
 #include <stdio.h>
 #include <cstring>
+#include <stdexcept>
+
+#ifdef SGW_PLATFORM_LINUX
+#include <arpa/inet.h>
+#endif
 
 static bool debug = true;
 
@@ -24,7 +29,9 @@ std::string sgw::Utils::FileToString(const char* fileName)
         int size = std::ftell(f);
         std::fseek(f,0,SEEK_SET);
         str.resize(size);
-        std::fread(&str[0],1,size,f);
+        size_t n = std::fread(&str[0],1,size,f);
+        if (n == 0)
+            throw std::runtime_error("Read nothing from file!");
         std::fclose(f);
         return str;
     }
@@ -69,6 +76,30 @@ sgw::Vec3 sgw::Utils::ClampVectorFromScreenSize(const Vec3& v, const Size& size,
     result.x = Utils::Clamp(v.x, 0, size.width, minNew, maxNew);
     result.y = Utils::Clamp(v.y, 0, size.height, minNew, maxNew);
     return result;
+}
+
+uint32_t sgw::Utils::ReverseByteOrder32(uint32_t var)
+{
+#ifdef SGW_COMPILER_GCC
+    return __builtin_bswap32(var);
+#endif    
+}
+
+uint64_t sgw::Utils::ReverseByteOrder64(uint64_t var)
+{
+#ifdef SGW_COMPILER_GCC
+    return __builtin_bswap64(var);
+#endif    
+}
+
+uint32_t sgw::Utils::ToBigEndian(uint32_t var)
+{
+    return htonl(var);
+}
+
+uint32_t sgw::Utils::ToHostEndian(uint32_t var)
+{
+    return ntohl(var);
 }
 
 /*

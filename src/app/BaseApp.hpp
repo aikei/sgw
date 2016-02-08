@@ -32,6 +32,8 @@ public:
     inline const AppData& GetAppData() const { return m_appData; }
     inline bool SetDone(bool done=true) { m_bDone = done; }   
     void Draw(const BaseShape& shape);
+    
+    static int VideoBackend;    
 };
 
 

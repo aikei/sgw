@@ -24,6 +24,8 @@ struct AppData
         windowSize = Size(1024, 768);
         title = "Window";
         videoBackend = SGW_CONST_RENDERER_BACKEND_OPEN_GL;
+        argc = 0;
+        argv = NULL;
     }
 };
 

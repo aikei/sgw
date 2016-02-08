@@ -4,7 +4,6 @@
 #include <GLFW/glfw3.h>
 
 #include <renderer/OpenGLRenderer.hpp>
-#include <renderer/shape/Rect.hpp>
 
 GLFWwindow* window;
 
@@ -24,6 +23,7 @@ bool sgw::GlfwApp::Init(int backend)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    BaseApp::VideoBackend = backend;
 #ifdef SGW_VIRTUAL_RENDERER_INTERFACE
     switch(backend)
     {

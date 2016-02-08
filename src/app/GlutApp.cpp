@@ -5,7 +5,7 @@
 #include "GlutApp.hpp"
 #include "gApp.hpp"
 #include <renderer/OpenGLRenderer.hpp>
-#include <renderer/shape/Rect.hpp>
+#include <sgw/geom/Rect.hpp>
 
 static sgw::IApp* pApp;
 
@@ -23,6 +23,7 @@ static void StaticRender()
 bool sgw::GlutApp::Init(int backend)
 {
     pApp = this;
+    BaseApp::VideoBackend = backend;
     glutInit(&m_appData.argc, m_appData.argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(m_appData.windowPosition.x,m_appData.windowPosition.y);
@@ -56,10 +57,6 @@ bool sgw::GlutApp::Init(int backend)
 
 void sgw::GlutApp::Render()
 {
-    Rect rect(Vec2(50,50),Vec2(100,100));
-    Rect rect2(Vec2(150,150),Vec2(200,200));
-    m_renderer->Draw(rect);
-    m_renderer->Draw(rect2);
     m_renderer->Render();
     glutSwapBuffers();
 }
@@ -67,5 +64,10 @@ void sgw::GlutApp::Render()
 void sgw::GlutApp::ProcessEvents()
 {
     glutMainLoopEvent();
+}
+
+void sgw::GlutApp::Exit()
+{
+    glutLeaveMainLoop();
 }
 

@@ -242,19 +242,19 @@ struct Quaternion
     
 };
 
-struct Vertex
-{
-    Vec3 pos;
-    Vec2 texCoords;
+//~ struct Vertex
+//~ {
+    //~ Vec3 pos;
+    //~ Vec2 texCoords;
     
-    Vertex() {}
+    //~ Vertex() {}
     
-    Vertex(const Vec3& _pos, const Vec2& _texCoords)
-    {
-        pos = _pos;
-        texCoords = _texCoords;
-    }
-};
+    //~ Vertex(const Vec3& _pos, const Vec2& _texCoords)
+    //~ {
+        //~ pos = _pos;
+        //~ texCoords = _texCoords;
+    //~ }
+//~ };
 
 }
 

@@ -14,7 +14,7 @@ class IRenderer
 public:
     virtual void Init(const AppData& appData)=0;
     virtual void Render()=0;
-    virtual void Draw(const BaseShape& shape)=0;
+    virtual void Draw(const BaseShape& shape)=0; 
 };
 
 }

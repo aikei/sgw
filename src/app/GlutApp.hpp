@@ -12,7 +12,8 @@ class GlutApp
 public:
     bool Init(int backend=0);
     void Render();
-    void ProcessEvents();   
+    void ProcessEvents();
+    void Exit();
 };
     
 }

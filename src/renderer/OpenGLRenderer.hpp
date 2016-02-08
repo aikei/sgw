@@ -13,7 +13,7 @@
 
 namespace sgw
 {
-
+class Texture;
 class OpenGLRenderer
 #ifdef SGW_VIRTUAL_RENDERER_INTERFACE
     : public BaseRenderer
@@ -31,6 +31,8 @@ protected:
     std::vector<FlushList> m_flushListCollection;
     void ClearFlushListCollection();
     void CheckFlushList(const BaseShape& shape);
+    void UnbindTexture();
+    void BindTexture(unsigned int textureUnit, const Texture& texture);
 #endif
 };
 

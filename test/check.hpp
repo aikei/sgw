@@ -18,7 +18,7 @@ public:
 protected:
     sgw::App& m_app;
     unsigned int CheckPixel(float x, float y);
-    void TestDraw(const char* testName, int shapeType, int numRuns);    
+    bool TestDraw(const char* testName, int shapeType, bool filled, int numRuns);    
     bool CheckDraw(const sgw::BaseShape& shape);
     std::unique_ptr<sgw::BaseShape> CreateRandomShape(int shapeType);
 };
