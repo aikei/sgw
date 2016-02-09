@@ -66,16 +66,81 @@ public:
      * \brief Main Loop step
      * 
      * You need to run it in a loop until app ends.
+     * 
+     * @return Returns result of IsDone
      */
-    inline void MainLoop() { m_pIApp->ProcessEvents(); m_pIApp->Render(); }
+    inline bool MainLoop() 
+    { 
+        m_pIApp->ProcessEvents(); 
+        m_pIApp->Render();
+        return IsDone();
+    }
     /**
      * \brief Get a const reference to the internal AppData object used by the App
      * 
      * @return the AppData object
      */    
     inline const AppData& GetAppData() const { return m_pIApp->GetAppData(); }
-
-protected:
+    /**
+     * \brief Sets the function and parameters for color blending.
+     * 
+     * The resulting color is calculated depending on the
+     * blending function and arguments chosen.
+     * The func parameter may be one of:
+     * 
+     * BLENDER_FUNC_ADD: color = srcColor*srcScale + dstColor*dstScale 
+     * 
+     * BLENDER_FUNC_SRC_MINUS_DST: color = srcColor*srcScale - dstColor*dstScale 
+     * 
+     * BLENDER_FUNC_DST_MINUS_SRC: color = dstColor*dstScale - srcColor*srcScale 
+     * 
+     * where,
+     * 
+     * srcColor is the color of the pixel to be drawn.
+     * 
+     * dstColor is the color already present (background color).
+     * 
+     * srcScale/dstScale = 1 if src/dst = BLENDER_ONE
+     * 
+     * srcScale/dstScale = source alpha if src/dst = BLENDER_ALPHA
+     * 
+     * srcScale/dstScale = 1-source alpha if src/dst = BLENDER_INVERSE_ALPHA
+     * 
+     * @param func : Blending function. One of 
+     * BLENDER_FUNC_ADD, 
+     * BLENDER_FUNC_SRC_MINUS_DST or 
+     * BLENDER_FUNC_DST_MINUS_SRC
+     * @param src : Source color scale factor. Resulting color = 
+     * source color * src + destination color * dst. 
+     * One of LENDER_ONE, BLENDER_ALPHA 
+     * or BLENDER_INVERSE_ALPHA
+     * @param dst : Destination color scale factor. Resulting color = 
+     * source color * src + destination color * dst. One of 
+     * BLENDER_ONE, sgw::App::BLENDER_ALPHA or 
+     * BLENDER_INVERSE_ALPHA
+     */
+    inline void SetBlender(int func, int src, int dst);
+    
+    /**
+     * \brief Whether we should premultiply alpha on texture load
+     */
+    static bool PremultiplyAlpha;
+    
+    ///A constant used to set up blender
+    static const int BLENDER_FUNC_ADD = 0;
+    ///A constant used to set up blender
+    static const int BLENDER_FUNC_SRC_MINUS_DST = 1;
+    ///A constant used to set up blender
+    static const int BLENDER_FUNC_DST_MINUS_SRC = 2;
+    
+    ///A constant used to set up blender
+    static const int BLENDER_ONE = 0;
+    ///A constant used to set up blender
+    static const int BLENDER_ALPHA = 1;
+    ///A constant used to set up blender
+    static const int BLENDER_INVERSE_ALPHA = 2;
+    
+private:
     IApp* m_pIApp;
 };
 

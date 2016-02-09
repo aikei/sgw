@@ -3,7 +3,6 @@
 #include <sgw/Prefs.hpp>
 
 #include "GlutApp.hpp"
-#include "gApp.hpp"
 #include <renderer/OpenGLRenderer.hpp>
 #include <sgw/geom/Rect.hpp>
 

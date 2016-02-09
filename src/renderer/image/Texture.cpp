@@ -1,4 +1,5 @@
 #include <sgw/Texture.hpp>
+#include <sgw/App.hpp>
 #include <utils/Logger.hpp>
 #include <app/BaseApp.hpp>
 #include <png.h>
@@ -84,6 +85,18 @@ void sgw::Texture::FileLoad(const char* fileName)
     for (int i = 0; i < m_height; i++)
         rowspp[m_height-1-i] = m_pImageData+i*m_width*4;   
     png_read_image(png_ptr, rowspp);
+    
+    //premultiply alpha
+    if (sgw::App::PremultiplyAlpha)
+    {
+        for (int i = 0; i < m_width*m_height*4; i += 4)
+        {
+            float a = m_pImageData[i+3]/255.0f;
+            m_pImageData[i] *= a;
+            m_pImageData[i+1] *= a;
+            m_pImageData[i+2] *= a;
+        }
+    }
     delete[] rowspp;
     //~ for (int i = 0; i < m_width*m_height*4; i+=4)
     //~ {

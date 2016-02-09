@@ -24,7 +24,7 @@ public:
     void Init(const AppData& appData);
     void Render();
     void Draw(const BaseShape& shape);
-    
+    void SetBlender(int func, int src, int dst);
 #ifndef SGW_VIRTUAL_RENDERER_INTERFACE
 protected:
     AppData m_appData;

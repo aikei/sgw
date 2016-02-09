@@ -3,6 +3,8 @@
 #include <app/GlutApp.hpp>
 #include <app/GlfwApp.hpp>
 
+bool sgw::App::PremultiplyAlpha = true;
+
 sgw::App::App(const AppData& appData)
 {
     m_pIApp = new GlfwApp();

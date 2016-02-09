@@ -3,7 +3,8 @@
 
 #include "IApp.hpp"
 #include <sgw/AppData.hpp>
-
+#include <renderer/shape/BaseShape.hpp>
+#include <renderer/OpenGLRenderer.hpp>
     
 namespace sgw
 {
@@ -31,7 +32,8 @@ public:
     inline void SetAppData(const AppData& _appData) { m_appData = _appData; }
     inline const AppData& GetAppData() const { return m_appData; }
     inline bool SetDone(bool done=true) { m_bDone = done; }   
-    void Draw(const BaseShape& shape);
+    inline void Draw(const BaseShape& shape) { m_renderer->Draw(shape); }
+    inline void SetBlender(int func, int src, int dst) { m_renderer->SetBlender(func,src,dst); }
     
     static int VideoBackend;    
 };

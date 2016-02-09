@@ -18,6 +18,7 @@ public:
     virtual bool IsDone()=0;
     virtual bool SetDone(bool done=true)=0;
     virtual void Draw(const BaseShape& shape)=0;
+    virtual void SetBlender(int func, int src, int dst)=0;
 };
 
 

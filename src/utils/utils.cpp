@@ -3,7 +3,6 @@
 #include <cmath>
 
 #include <math/math.hpp>
-#include <app/gApp.hpp>
 #include <app/BaseApp.hpp>
 #include <sgw/AppData.hpp>
 

@@ -7,6 +7,7 @@
 #include <utils/Logger.hpp>
 #include <math/math.hpp>
 #include <sgw/Texture.hpp>
+#include <sgw/App.hpp>
 
 #include <cstring>
 #include <vector>
@@ -278,10 +279,69 @@ void sgw::OpenGLRenderer::Init(const AppData& appData)
         
     glUniformMatrix4fv(gWorldLocation,1,GL_TRUE,
         &perspectiveTransform.m_elements[0][0]);
+
+    glEnable(GL_BLEND);    
+    SetBlender(sgw::App::BLENDER_FUNC_ADD, sgw::App::BLENDER_ONE, 
+        sgw::App::BLENDER_INVERSE_ALPHA);
+    
+    //~ glBlendEquation(GL_FUNC_ADD);
+    //~ glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); 
     
     //~ glEnable(GL_BLEND);
     //~ glBlendEquation(GL_FUNC_ADD);
     //~ glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+}
+
+void sgw::OpenGLRenderer::SetBlender(int func, int src, int dst)
+{
+    switch(func)
+    {
+        case sgw::App::BLENDER_FUNC_ADD:
+            func = GL_FUNC_ADD;
+            break;
+        
+        case sgw::App::BLENDER_FUNC_SRC_MINUS_DST:
+            func = GL_FUNC_SUBTRACT;
+            break;
+        
+        case sgw::App::BLENDER_FUNC_DST_MINUS_SRC:
+            func = GL_FUNC_REVERSE_SUBTRACT;
+            break;            
+    }
+    
+    switch(src)
+    {
+        case sgw::App::BLENDER_ONE:
+            src = GL_ONE;
+            break;
+            
+        case sgw::App::BLENDER_ALPHA:
+            src = GL_SRC_ALPHA;
+            break;
+        
+        case sgw::App::BLENDER_INVERSE_ALPHA:
+            src = GL_ONE_MINUS_SRC_ALPHA;
+            break;
+    }
+    
+    switch(dst)
+    {
+        case sgw::App::BLENDER_ONE:
+            dst = GL_ONE;
+            break;
+            
+        case sgw::App::BLENDER_ALPHA:
+            dst = GL_SRC_ALPHA;
+            break;
+        
+        case sgw::App::BLENDER_INVERSE_ALPHA:
+            dst = GL_ONE_MINUS_SRC_ALPHA;
+            break;
+    }    
+    
+    glBlendEquation(func);
+    glBlendFunc(src, dst);    
 }
 
 void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
@@ -316,8 +376,8 @@ void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
             vertices[3].pos.x = rect.GetPos().x;
             vertices[3].pos.y = rect.GetPos().y+rect.GetSize().height;
             vertices[3].pos.z = 0;
-            printf("x, y, w, h = %.1f %.1f %.1f %.1f",
-                rect.GetPos().x, rect.GetPos().y, rect.GetSize().width, rect.GetSize().height);
+            //~ printf("x, y, w, h = %.1f %.1f %.1f %.1f",
+                //~ rect.GetPos().x, rect.GetPos().y, rect.GetSize().width, rect.GetSize().height);
 // if the rect is not filled, subtract 1 from bottom right coordinates 
 // to make sure that the non-filled rect is drawn consistently with the
 // filled one. 
