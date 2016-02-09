@@ -2,9 +2,9 @@
 /Release
 /CMakeFiles
 /bin
-Makefile
-sgw
-CMakeCache.txt
-cmake_install.cmake
-main
+/Makefile
+/sgw
+/CMakeCache.txt
+/cmake_install.cmake
+/main
 cmakeConfig.h
