@@ -23,14 +23,14 @@ public:
      * 
      * @param windowWidth : width of the window to be created
      * @param windowHeight : height of the window to be created
-     * @param videoBackend : only used by the lib if it was compiled with SGW_RENDERER_VIRTUAL_INTERFACE, otherwise does nothing
+     * @param videoBackend : only used by **sgw** if it was compiled with **SGW_RENDERER_VIRTUAL_INTERFACE**, otherwise does nothing. Defaults to **SGW_CONST_RENDERER_BACKEND_OPEN_GL** (use **OpenGL**).
      */
     App(float windowWidth, float windowHeight, 
         int videoBackend = SGW_CONST_RENDERER_BACKEND_OPEN_GL);
     /**
-     * \brief Creates a new sgw App.
+     * \brief Creates a new **sgw** **App**.
      * 
-     * @param appData : AppData object containing info needed to create the App
+     * @param appData : **AppData** object containing info needed to create the **App**
      */
     App(const AppData& appData);
     /**
@@ -43,23 +43,23 @@ public:
      * \brief Whether internal 'done' flag of the App has been set.
      * 
      * The flag is set to false if you, for example, click the close button.
-     * You can use it as a condition in your main cycle.
+     * You can use it as a condition in your main loop.
      */
     inline bool IsDone() const { return m_pIApp->IsDone(); }
     /**
-     * \brief Processes all current events - part of main loop.
+     * \brief Processes all current events - part of the main loop.
      * 
      * Should you wish to separate main loop into two stages, you need to
-     * first call ProcessEvents() and then Render(). Don't call it if you 
-     * already call MainLoop()
+     * first call **ProcessEvents()** and then **Render()**. Do not call it if you 
+     * already call **MainLoop()**.
      */
     inline void ProcessEvents() { m_pIApp->ProcessEvents(); }
     /**
      * \brief Renders all drawn shapes onto the screen.
      * 
      * Should you wish to separate main loop into two stages, you need
-     * to call Render() after ProcessEvents. 
-     * Don't call it if you already call MainLoop()
+     * to call **Render()** after **ProcessEvents**. 
+     * Do not call it if you already call **MainLoop()**.
      */    
     inline void Render() { m_pIApp->Render(); }
     /**
@@ -87,33 +87,31 @@ public:
      * The resulting color is calculated depending on the
      * blending function and arguments chosen.
      * The func parameter may be one of:
+     * 1. **BLENDER_FUNC_ADD** || if **func** is set to this value, then color = srcColor*srcScale + dstColor*dstScale 
      * 
-     * BLENDER_FUNC_ADD: color = srcColor*srcScale + dstColor*dstScale 
+     * 2. **BLENDER_FUNC_SRC_MINUS_DST** || if **func** is set to this value, then color = srcColor*srcScale - dstColor*dstScale 
      * 
-     * BLENDER_FUNC_SRC_MINUS_DST: color = srcColor*srcScale - dstColor*dstScale 
-     * 
-     * BLENDER_FUNC_DST_MINUS_SRC: color = dstColor*dstScale - srcColor*srcScale 
+     * 3. **BLENDER_FUNC_DST_MINUS_SRC** || if **func** is set to this value, then color = dstColor*dstScale - srcColor*srcScale 
      * 
      * where,
      * 
-     * srcColor is the color of the pixel to be drawn.
+     * - **srcColor** is the color of the pixel to be drawn.
      * 
-     * dstColor is the color already present (background color).
+     * - **dstColor** is the color already present (background color).
      * 
-     * srcScale/dstScale = 1 if src/dst = BLENDER_ONE
+     * - **srcScale** and **dstScale** = 1 if src/dst = BLENDER_ONE
      * 
-     * srcScale/dstScale = source alpha if src/dst = BLENDER_ALPHA
+     * - **srcScale** and **dstScale** = source alpha if src/dst = BLENDER_ALPHA
      * 
-     * srcScale/dstScale = 1-source alpha if src/dst = BLENDER_INVERSE_ALPHA
+     * - **srcScale** and **dstScale** = 1-source alpha if src/dst = BLENDER_INVERSE_ALPHA
      * 
-     * @param func : Blending function. One of 
-     * BLENDER_FUNC_ADD, 
-     * BLENDER_FUNC_SRC_MINUS_DST or 
-     * BLENDER_FUNC_DST_MINUS_SRC
+     * @param func : Blending function. One of **BLENDER_FUNC_ADD**, **BLENDER_FUNC_SRC_MINUS_DST** or **BLENDER_FUNC_DST_MINUS_SRC**
+     * 
      * @param src : Source color scale factor. Resulting color = 
      * source color * src + destination color * dst. 
      * One of LENDER_ONE, BLENDER_ALPHA 
      * or BLENDER_INVERSE_ALPHA
+     * 
      * @param dst : Destination color scale factor. Resulting color = 
      * source color * src + destination color * dst. One of 
      * BLENDER_ONE, sgw::App::BLENDER_ALPHA or 
@@ -121,9 +119,7 @@ public:
      */
     inline void SetBlender(int func, int src, int dst);
     
-    /**
-     * \brief Whether we should premultiply alpha on texture load
-     */
+    ///Whether we should premultiply alpha on texture load
     static bool PremultiplyAlpha;
     
     ///A constant used to set up blender

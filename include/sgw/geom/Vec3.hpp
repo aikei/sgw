@@ -4,6 +4,7 @@
 #include <math.h>
 #include <cstring>
 #include "Vec2.hpp"
+#include "Size.hpp"
 
 namespace sgw
 {
@@ -21,6 +22,13 @@ struct Vec3
         this->y = y;
         this->z = z;
     }
+    
+    Vec3(const Vec2& vec2)
+    {
+        this->x = vec2.x;
+        this->y = vec2.y;
+        this->z = 0;
+    }    
     
     Vec3 Cross(const Vec3& v) const
     {
@@ -205,6 +213,36 @@ struct Vec3
         z /= scalar;
         return *this;
     }
+    
+    Vec3 operator-(const Size& size) const
+    { 
+        Vec2 ret;
+        ret.x = x-size.width;
+        ret.y = y-size.height;
+        return ret;
+    }
+
+    Vec3& operator-=(const Size& size)
+    {
+        x -= size.width;
+        y -= size.height;
+        return *this;
+    }
+    
+    Vec3 operator+(const Size& size) const
+    { 
+        Vec2 ret;
+        ret.x = x+size.width;
+        ret.y = y+size.height;
+        return ret;
+    }
+
+    Vec3& operator+=(const Size& size)
+    {
+        x += size.width;
+        y += size.height;
+        return *this;
+    }    
     
     void Normalize()
     {

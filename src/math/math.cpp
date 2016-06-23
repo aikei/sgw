@@ -113,7 +113,7 @@ void sgw::Mat4::SetOpenGLOrthographicProjection(float w, float h, float zNear, f
     const float zRange = zFar - zNear;
 
     m_elements[0][0] = 2.0f/w;                  m_elements[0][1] = 0.0f;                m_elements[0][2] = 0.0f;                            m_elements[0][3] = -1.0;
-    m_elements[1][0] = 0.0f;                    m_elements[1][1] = -2.0f/h;                 m_elements[1][2] = 0.0f;                            m_elements[1][3] = 1.0;
+    m_elements[1][0] = 0.0f;                    m_elements[1][1] = -2.0f/h;             m_elements[1][2] = 0.0f;                            m_elements[1][3] = 1.0;
     m_elements[2][0] = 0.0f;                    m_elements[2][1] = 0.0f;                m_elements[2][2] = -2/zRange;                       m_elements[2][3] = (zFar+zNear)/zRange;
     m_elements[3][0] = 0.0f;                    m_elements[3][1] = 0.0f;                m_elements[3][2] = 0.0f;                            m_elements[3][3] = 1.0;     
 }

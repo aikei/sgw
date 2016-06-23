@@ -2,6 +2,7 @@
 #include "Logger.hpp"
 
 int sgw::Logger::LogLevel = sgw::Logger::LOG_LEVEL_ERROR;
+//int sgw::Logger::LogLevel = sgw::Logger::LOG_LEVEL_TRACE;
 
 void sgw::Logger::FLog(int level, const char* fmt, va_list args)
 {
@@ -12,7 +13,7 @@ void sgw::Logger::FLog(int level, const char* fmt, va_list args)
     }  
     char buffer[512];
     vsnprintf(buffer, 512, fmt, args);
-    printf("%s",buffer);
+    printf("%s\n",buffer);
     va_end(args);
 }
 

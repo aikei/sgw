@@ -2,6 +2,7 @@
 #define SGW_UTILS_HPP_INCLUDED
 
 #include <string>
+#include <cstdint>
 
 #ifdef PRINT_DEBUG
     #define DEBUG_PRINT(text) printf("%s\n",text);

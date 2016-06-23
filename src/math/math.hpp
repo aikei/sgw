@@ -62,7 +62,7 @@ struct Mat4
         return false;
     }
 
-    Mat4 operator+(const Mat4& right)
+    Mat4 operator+(const Mat4& right) const
     {
         Mat4 mat;
         for (int i = 0; i < 4; i++)
@@ -83,7 +83,7 @@ struct Mat4
         return *this;
     }
 
-    Mat4 operator-(const Mat4& right)
+    Mat4 operator-(const Mat4& right) const
     {
         Mat4 mat;
         for (int i = 0; i < 4; i++)
@@ -104,7 +104,7 @@ struct Mat4
         return *this;
     }
 
-    Mat4 operator*(const Mat4& right)
+    Mat4 operator*(const Mat4& right) const
     {
         Mat4 mat;
 
@@ -129,7 +129,7 @@ struct Mat4
         return *this;
     }
 
-    Mat4 operator*(const float scalar)
+    Mat4 operator*(const float scalar) const
     {
         Mat4 mat;
         for (int i = 0; i < 4; i++)
@@ -154,7 +154,7 @@ struct Mat4
         return *this;
     }
 
-    Mat4 operator/(const float scalar)
+    Mat4 operator/(const float scalar) const
     {
         Mat4 mat;
         for (int i = 0; i < 4; i++)
@@ -179,7 +179,7 @@ struct Mat4
         return *this;
     }
 
-    Vec3 operator*(const Vec3& right)
+    Vec3 operator*(const Vec3& right) const
     {
         Vec3 point;
         point.x = m_elements[0][0]*right.x+m_elements[0][1]*right.y+m_elements[0][2]*right.z;

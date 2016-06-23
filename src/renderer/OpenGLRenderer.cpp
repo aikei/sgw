@@ -39,7 +39,8 @@ static GLenum ConvertFlushListType(int type)
 {
     switch(type)
     {         
-        case sgw::FlushList::TYPE_LINES:           
+        case sgw::FlushList::TYPE_LINES:
+        case sgw::FlushList::TYPE_TRIANGLES:          
             return GL_LINES;
             break;
             
@@ -53,7 +54,6 @@ static GLenum ConvertFlushListType(int type)
             
         case sgw::FlushList::TYPE_FILLED_TRIANGLES:
         case sgw::FlushList::TYPE_RECTANGLES:
-        case sgw::FlushList::TYPE_TRIANGLES:             
             return GL_TRIANGLES;
             break;
     }
@@ -198,6 +198,11 @@ void sgw::OpenGLRenderer::Render()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
     glClear(GL_COLOR_BUFFER_BIT);
     
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glDepthMask(GL_TRUE);
+    //glEnable(GL_DEPTH_TEST);
+    //glDepthFunc(GL_LEQUAL);    
+    
     unsigned int size = m_flushListCollection.size();
     DEBUG_PRINT("before render");
     for (unsigned int i = 0; i < size; i++)
@@ -273,6 +278,7 @@ void sgw::OpenGLRenderer::Init(const AppData& appData)
       throw std::runtime_error("couldn't init GLEW");
     }
     CompileShaders();
+    //perspectiveTransform.SetPerspectiveProjection(m_appData.windowSize.width, m_appData.windowSize.height, -sgw::PI, 1, -1);
     perspectiveTransform.SetOpenGLOrthographicProjection(
         m_appData.windowSize.width, m_appData.windowSize.height, 
         1, -1);
@@ -358,7 +364,7 @@ void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
         case BaseShape::SHAPE_IMAGE:
         {
             const Rect& rect = static_cast<const Rect&>(shape);
-            //construct the primitive to draw, each vertex refers to a
+            //construct the primitive to draw; each vertex refers to a
             //point in the primitive (a rectangle)
             
             Vertex vertices[4];
@@ -430,36 +436,73 @@ void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
                 // if the rect is not filled, draw it as a list of lines
                 // I chose it instead of LINES_LOOP to be able to batch
                 // several rectangles (with LINES_LOOP you need to stop
-                // after each. so every two points correspond to one line
-                
-                //~ flushList.indices.push_back(verticesSize);
-                //~ flushList.indices.push_back(verticesSize+1);
-                
-                //~ flushList.indices.push_back(verticesSize+1);
-                //~ flushList.indices.push_back(verticesSize+2);
-                
-                //~ flushList.indices.push_back(verticesSize+3);
-                //~ flushList.indices.push_back(verticesSize+2);
-                
-                //~ flushList.indices.push_back(verticesSize);
-                //~ flushList.indices.push_back(verticesSize+3);
-                
+                // after each or use glPrimitiveRestartIndex, which is
+                // OpenGL 3.1 and higher, and sgw supposed to support 2.0) 
+                // So every two points correspond to one line
                 
                 flushList.indices.push_back(verticesSize);
                 flushList.indices.push_back(verticesSize+1);
+                
+                flushList.indices.push_back(verticesSize+1);
+                flushList.indices.push_back(verticesSize+2);
+                
+                flushList.indices.push_back(verticesSize+3);
+                flushList.indices.push_back(verticesSize+2);
+                
                 flushList.indices.push_back(verticesSize);
+                flushList.indices.push_back(verticesSize+3);
+                
+                
+                //~ flushList.indices.push_back(verticesSize);
+                //~ flushList.indices.push_back(verticesSize+1);
+                //~ flushList.indices.push_back(verticesSize);
+                
+                //~ flushList.indices.push_back(verticesSize+1);
+                //~ flushList.indices.push_back(verticesSize+2);
+                //~ flushList.indices.push_back(verticesSize+1);
+                
+                //~ flushList.indices.push_back(verticesSize+2);
+                //~ flushList.indices.push_back(verticesSize+3);
+                //~ flushList.indices.push_back(verticesSize+2);
+                
+                //~ flushList.indices.push_back(verticesSize+3);
+                //~ flushList.indices.push_back(verticesSize); 
+                //~ flushList.indices.push_back(verticesSize+3);                
+            }
+        }
+        break;
+        
+        case BaseShape::SHAPE_TRIANGLE:
+        {
+            const Triangle& tr = static_cast<const Triangle&>(shape);
+            
+            std::vector<Vec3> points = tr.GetPoints();
+            
+            Vertex vertices[3];
+
+            vertices[0].pos = points[0];
+            vertices[1].pos = points[1];
+            vertices[2].pos = points[2];
+                  
+            unsigned int verticesSize = flushList.vertices.size();
+            for (int i = 0; i < 3; i++)
+            {
+                vertices[i].clr = tr.GetColor();
+                flushList.vertices.push_back(vertices[i]);
+                if (tr.IsFilled())
+                    flushList.indices.push_back(verticesSize+i);
+            }
+            
+            if (!tr.IsFilled())
+            {
+                flushList.indices.push_back(verticesSize);
+                flushList.indices.push_back(verticesSize+1);
                 
                 flushList.indices.push_back(verticesSize+1);
                 flushList.indices.push_back(verticesSize+2);
-                flushList.indices.push_back(verticesSize+1);
                 
-                flushList.indices.push_back(verticesSize+2);
-                flushList.indices.push_back(verticesSize+3);
-                flushList.indices.push_back(verticesSize+2);
-                
-                flushList.indices.push_back(verticesSize+3);
-                flushList.indices.push_back(verticesSize); 
-                flushList.indices.push_back(verticesSize+3);                
+                flushList.indices.push_back(verticesSize);
+                flushList.indices.push_back(verticesSize+2);                
             }
         }
         break;

@@ -1,5 +1,6 @@
 #include <sgw/sgw.hpp>
 #include <cstdio>
+#include <vector>
 
 int main(int argc, char** argv)
 {   
@@ -24,6 +25,14 @@ int main(int argc, char** argv)
     
     sgw::Rect rect2(150,150,200,200);
     rect2.SetFilled(true);
+    
+    sgw::Triangle tr(250,250,300,250,275,300);
+    tr.SetFilled(false);
+    
+    //sgw::Triangle tr2(275,250,0,287,275,0,137.5,150,0);
+    //tr2.SetFilled(false);    
+    
+    std::vector<sgw::Triangle> trs = tr.Split();
               
     while(!app.MainLoop())
     {
@@ -37,7 +46,15 @@ int main(int argc, char** argv)
         
         app.Draw(image);
         app.Draw(image3);
-        app.Draw(image2);                
+        app.Draw(image2);
+        
+        for (int i = 0; i < trs.size(); i++)
+        {
+            app.Draw(trs[i]);
+        } 
+        
+        //app.Draw(tr);
+        //app.Draw(tr3);     
     }
 
     return 0;

@@ -16,9 +16,11 @@ int testsSucceeded;
 int testsFailed;
 int testNumber;
 
+static std::unique_ptr<sgw::Texture> spTexture;
 
 test::Check::Check(sgw::App& app) : m_app(app)
 {
+    spTexture.reset(new sgw::Texture("../media/test3.png"));
     testsSucceeded = 0;
     testsFailed = 0;
     testNumber = 0;
@@ -26,7 +28,7 @@ test::Check::Check(sgw::App& app) : m_app(app)
 
 void test::Check::RunTests()
 {
-    sgw::Logger::LogLevel = sgw::Logger::LOG_LEVEL_DEBUG;
+    //sgw::Logger::LogLevel = sgw::Logger::LOG_LEVEL_DEBUG;
     //sgw::Logger::LogLevel = sgw::Logger::LOG_LEVEL_TRACE;
     TestDraw("Draw filled rect test",sgw::BaseShape::SHAPE_RECTANGLE,true,10);
     TestDraw("Draw non-filled rect test",sgw::BaseShape::SHAPE_RECTANGLE,false,10);
@@ -78,8 +80,7 @@ std::unique_ptr<sgw::BaseShape> test::Check::CreateRandomShape(int shapeType)
             
         case sgw::BaseShape::SHAPE_IMAGE:
             {
-                sgw::Texture* texture = new sgw::Texture("../media/test3.png");
-                shpPtr.reset(new sgw::Image(*texture));
+                shpPtr.reset(new sgw::Image(*spTexture));
                 shpPtr->SetPos(x,y);
             }
             break;
