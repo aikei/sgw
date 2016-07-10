@@ -5,6 +5,7 @@
 #include <math.h>
 #include <sgw/geom/Vec2.hpp>
 #include <sgw/geom/Vec3.hpp>
+#include <vector>
 
 namespace sgw
 {
@@ -182,9 +183,9 @@ struct Mat4
     Vec3 operator*(const Vec3& right) const
     {
         Vec3 point;
-        point.x = m_elements[0][0]*right.x+m_elements[0][1]*right.y+m_elements[0][2]*right.z;
-        point.y = m_elements[1][0]*right.x+m_elements[1][1]*right.y+m_elements[1][2]*right.z;
-        point.z = m_elements[2][0]*right.x+m_elements[2][1]*right.y+m_elements[2][2]*right.z;
+        point.x = m_elements[0][0]*right.x+m_elements[0][1]*right.y+m_elements[0][2]*right.z+m_elements[0][3];
+        point.y = m_elements[1][0]*right.x+m_elements[1][1]*right.y+m_elements[1][2]*right.z+m_elements[1][3];
+        point.z = m_elements[2][0]*right.x+m_elements[2][1]*right.y+m_elements[2][2]*right.z+m_elements[2][3];
 
         return point;
     }
@@ -210,6 +211,8 @@ struct Mat4
             }
         }
     }
+    
+    std::vector<Vec3>& TransformPoints(std::vector<Vec3>& points) const;
     
     //~ void SetRotationZ(float angle);
     //~ void SetRotationX(float angle);

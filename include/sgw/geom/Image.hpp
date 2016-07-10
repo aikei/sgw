@@ -11,11 +11,8 @@ class Texture;
 class Image : public Rect
 {
 public:
-    Image(const Texture& texture);
-    inline const Texture* GetTexture() const { return &m_texture; }
+    Image(std::shared_ptr<Texture> texture);
     inline void SetFilled(bool filled) {  }
-protected:
-    const Texture& m_texture;
 };
 
 }

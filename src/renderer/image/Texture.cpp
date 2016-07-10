@@ -72,22 +72,29 @@ void sgw::Texture::FileLoad(const char* fileName)
     Logger::FLog(Logger::LOG_LEVEL_TRACE,
         "File width: %d, height: %d, depth: %d, color type: %d",
         m_width,m_height,bit_depth,color_type);
-    if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-        Logger::FLog(Logger::LOG_LEVEL_TRACE,
-            "Color type is PNG_COLOR_TYPE_RGB_ALPHA");
-    Logger::FLog(Logger::LOG_LEVEL_TRACE,"Interlacing: %d",interlace_type);
+    if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) 
+    {
+        m_numberOfComponents = 4;
+        Logger::FLog(Logger::LOG_LEVEL_TRACE, "Color type is PNG_COLOR_TYPE_RGB_ALPHA");
+    } 
+    else if (color_type == PNG_COLOR_TYPE_RGB)
+    {
+        m_numberOfComponents = 3;
+        Logger::FLog(Logger::LOG_LEVEL_TRACE, "Color type is PNG_COLOR_TYPE_RGB");
+    }
+    Logger::FLog(Logger::LOG_LEVEL_TRACE, "Interlacing: %d", interlace_type);
     
     png_read_update_info(png_ptr, info_ptr);
     
-    m_pImageData = new unsigned char[m_width*m_height*4];
+    m_pImageData = new unsigned char[m_width*m_height*m_numberOfComponents];
     
     unsigned char** rowspp = new unsigned char*[m_height];
     for (int i = 0; i < m_height; i++)
-        rowspp[m_height-1-i] = m_pImageData+i*m_width*4;   
+        rowspp[m_height-1-i] = m_pImageData+i*m_width*m_numberOfComponents;   
     png_read_image(png_ptr, rowspp);
     
     //premultiply alpha
-    if (sgw::App::PremultiplyAlpha)
+    if (sgw::App::PremultiplyAlpha && m_numberOfComponents == 4)
     {
         for (int i = 0; i < m_width*m_height*4; i += 4)
         {
@@ -117,8 +124,16 @@ void sgw::Texture::GPULoad()
 {
     glGenTextures(1, &glTextureObj);
     glBindTexture(GL_TEXTURE_2D, glTextureObj);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, 
-        GL_RGBA, GL_UNSIGNED_BYTE, m_pImageData);
+    if (m_numberOfComponents == 4) 
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, 
+            GL_RGBA, GL_UNSIGNED_BYTE, m_pImageData);
+    }
+    else if (m_numberOfComponents == 3)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, 
+            GL_RGB, GL_UNSIGNED_BYTE, m_pImageData);        
+    }
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    
     glBindTexture(GL_TEXTURE_2D, 0);    

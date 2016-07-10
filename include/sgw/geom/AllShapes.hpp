@@ -1,3 +1,5 @@
 #include "Rect.hpp"
 #include "Image.hpp"
 #include "Triangle.hpp"
+#include "Octahedron.hpp"
+#include "Sphere.hpp"

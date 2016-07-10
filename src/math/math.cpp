@@ -1,6 +1,7 @@
 #include <math.h>
 #include "math.hpp"
 #include <utils/utils.hpp>
+#include <utils/Logger.hpp>
 
 void sgw::Vec3::Rotate(float angle, const Vec3& axis)
 {
@@ -123,6 +124,16 @@ void sgw::Mat4::AddPerspectiveProjection(float w, float h, float fov, float zNea
     Mat4 mat;
     mat.SetPerspectiveProjection(w, h, fov, zNear, zFar);
     *this = mat*(*this);    
+}
+
+std::vector<sgw::Vec3>& sgw::Mat4::TransformPoints(std::vector<Vec3>& points) const
+{
+    unsigned int sz = points.size();
+    for (int i = 0; i < sz; i++)
+    {
+        points[i] = (*this)*points[i];
+    }
+    return points;    
 }
 
 void sgw::Mat4::SetCameraTransform(const Vec3& target, const Vec3& upAxis)

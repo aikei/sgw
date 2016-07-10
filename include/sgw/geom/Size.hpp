@@ -13,7 +13,7 @@ struct Size
     
     Size operator/(float scalar) const
     {
-        return Size(width/scalar,height/scalar);
+        return Size(width/scalar, height/scalar);
     }
 };
 

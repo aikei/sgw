@@ -22,7 +22,7 @@ GLuint indexBuffer = 0;
 GLuint primitiveRestartIndex = 65000;
 GLuint gWorldLocation;
 GLuint gSampler;
-GLuint gUseTexture;
+GLuint gTextureType;
 
 sgw::Mat4 perspectiveTransform;
 
@@ -37,23 +37,28 @@ sgw::OpenGLRenderer::OpenGLRenderer()
 
 static GLenum ConvertFlushListType(int type)
 {
+    sgw::Logger::FLogTrace("ConvertFlushListType");
     switch(type)
     {         
         case sgw::FlushList::TYPE_LINES:
-        case sgw::FlushList::TYPE_TRIANGLES:          
+        case sgw::FlushList::TYPE_TRIANGLES:
+            sgw::Logger::FLogTrace("ConvertFlushListType -> return: GL_LINES");
             return GL_LINES;
             break;
             
         case sgw::FlushList::TYPE_LINE_LOOP:
+            sgw::Logger::FLogTrace("ConvertFlushListType -> return: GL_LINES");
             return GL_LINES;
             break;
             
         case sgw::FlushList::TYPE_LINE_STRIP:
+            sgw::Logger::FLogTrace("ConvertFlushListType -> return: GL_LINE_STRIP");
             return GL_LINE_STRIP;
             break;
             
         case sgw::FlushList::TYPE_FILLED_TRIANGLES:
         case sgw::FlushList::TYPE_RECTANGLES:
+            sgw::Logger::FLogTrace("ConvertFlushListType -> return: GL_TRIANGLES");
             return GL_TRIANGLES;
             break;
     }
@@ -79,7 +84,7 @@ const char* vertexShader =
 const char* fragmentShader =
 "#version 330\n"
 "uniform sampler2D gSampler;"
-"uniform bool gUseTexture;"
+"uniform int gTextureType;"
 "in vec4 retClr;"
 "in vec2 retTexCoord;"
 "out vec4 fragColor;"
@@ -87,19 +92,25 @@ const char* fragmentShader =
 "\n"
 "void main()"
 "{"
-"       if (gUseTexture)"
+"       if (gTextureType > 0)"
 "       {"
 "           endColor = texture2D(gSampler,retTexCoord.xy);"
-"           endColor = vec4(endColor.rgb*retClr.rgb,endColor.a*retClr.a);"
+"           if (gTextureType == 4)"
+"               endColor = vec4(endColor.rgb*retClr.rgb,endColor.a*retClr.a);"
+"           else if (gTextureType == 3)"
+"               endColor = vec4(endColor.rgb*retClr.rgb,1.0);"
 "       }"
 "       else"
+"       {"
 "           endColor = retClr;"
+"       }"
 "       fragColor = endColor;"
 "}";
 
 void AddShader(GLuint shaderProgram, const char* shaderCode, 
                                                 GLenum shaderType)
 {
+    sgw::Logger::FLogTrace("OpenGLRenderer::AddShader, type: %d",shaderType);
     GLuint shaderObj = glCreateShader(shaderType);
     if (shaderObj == 0)
     {
@@ -126,6 +137,7 @@ void AddShader(GLuint shaderProgram, const char* shaderCode,
 
 void CompileShaders()
 {
+    sgw::Logger::FLogTrace("OpenGLRenderer::CompileShaders");
     GLuint shaderProgram = glCreateProgram();
     if (shaderProgram == 0)
     {
@@ -167,21 +179,23 @@ void CompileShaders()
         
     glUniform1i(gSampler, 0);
     
-    gUseTexture = glGetUniformLocation(shaderProgram, "gUseTexture");
+    gTextureType = glGetUniformLocation(shaderProgram, "gTextureType");
     if (gWorldLocation == 0xFFFFFFFF)
-        throw std::runtime_error("can't get gUseTexture");
-    glUniform1i(gUseTexture, false);
+        throw std::runtime_error("can't get gTextureType");
+    glUniform1i(gTextureType, 0);
 }
 
 #ifndef SGW_VIRTUAL_RENDERER_INTERFACE
 void sgw::OpenGLRenderer::CheckFlushList(const BaseShape& shape)
 {
+    Logger::FLogTrace("OpenGLRenderer::CheckFlushList");
     if (m_flushListCollection.empty() || 
         m_flushListCollection.back().type != shape.GetFlushListType() ||
         shape.GetTexture() != m_flushListCollection.back().texture)
     {
         FlushList flushList;
         flushList.type = shape.GetFlushListType();
+        //flushList.textureType = shape.GetTextureType();
         flushList.texture = shape.GetTexture();
         m_flushListCollection.push_back(flushList);
     }
@@ -195,14 +209,15 @@ void sgw::OpenGLRenderer::ClearFlushListCollection()
 
 void sgw::OpenGLRenderer::Render()
 {
+    sgw::Logger::FLogTrace("OpenGLRenderer::Render");
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT);
     
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //glDepthMask(GL_TRUE);
     //glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);    
-    
+        
     unsigned int size = m_flushListCollection.size();
     DEBUG_PRINT("before render");
     for (unsigned int i = 0; i < size; i++)
@@ -244,14 +259,18 @@ void sgw::OpenGLRenderer::Render()
         
         if (flushList.texture)
         {
+            Logger::FLogInfo("Flushlist texture is: %x, noOfComponents: %d",flushList.texture, flushList.texture->GetNumberOfComponents());
             BindTexture(GL_TEXTURE0,*flushList.texture);
-            glUniform1i(gUseTexture, true);
+            glUniform1i(gTextureType, flushList.texture->GetNumberOfComponents());
         }
         else
         {
-            glUniform1i(gUseTexture, false);
+            Logger::FLogTrace("Flushlist texture is NULL");
+            glUniform1i(gTextureType, 0);
         }
-        
+        sgw::Logger::FLogTrace("flushList.type: %d",flushList.type);
+        sgw::Logger::FLogTrace(flushList.vertices);
+        sgw::Logger::FLog(sgw::Logger::LOG_LEVEL_TRACE, indices);
         glDrawElements(ConvertFlushListType(flushList.type), 
             indices.size(), GL_UNSIGNED_INT, 0);
         
@@ -270,18 +289,20 @@ void sgw::OpenGLRenderer::Render()
 
 void sgw::OpenGLRenderer::Init(const AppData& appData)
 {
+    sgw::Logger::FLogTrace("OpenGLRenderer::Init");
     m_appData = appData;
     GLenum res = glewInit();
     if (res != GLEW_OK) 
     {
-      fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
-      throw std::runtime_error("couldn't init GLEW");
+        fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
+        throw std::runtime_error("couldn't init GLEW");
     }
     CompileShaders();
     //perspectiveTransform.SetPerspectiveProjection(m_appData.windowSize.width, m_appData.windowSize.height, -sgw::PI, 1, -1);
+    float depth = (m_appData.windowSize.width+m_appData.windowSize.height)/2;
     perspectiveTransform.SetOpenGLOrthographicProjection(
         m_appData.windowSize.width, m_appData.windowSize.height, 
-        1, -1);
+        depth/2, -depth/2);
         
     glUniformMatrix4fv(gWorldLocation,1,GL_TRUE,
         &perspectiveTransform.m_elements[0][0]);
@@ -289,18 +310,15 @@ void sgw::OpenGLRenderer::Init(const AppData& appData)
     glEnable(GL_BLEND);    
     SetBlender(sgw::App::BLENDER_FUNC_ADD, sgw::App::BLENDER_ONE, 
         sgw::App::BLENDER_INVERSE_ALPHA);
-    
-    //~ glBlendEquation(GL_FUNC_ADD);
-    //~ glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); 
-    
-    //~ glEnable(GL_BLEND);
-    //~ glBlendEquation(GL_FUNC_ADD);
-    //~ glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+          
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
 }
 
 void sgw::OpenGLRenderer::SetBlender(int func, int src, int dst)
 {
+    sgw::Logger::FLogTrace("OpenGLRenderer::SetBlender");
     switch(func)
     {
         case sgw::App::BLENDER_FUNC_ADD:
@@ -352,38 +370,24 @@ void sgw::OpenGLRenderer::SetBlender(int func, int src, int dst)
 
 void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
 {
-    DEBUG_PRINT("draw shape");
+    sgw::Logger::FLogTrace("OpenGLRenderer::Draw");
     
     int shapeType = shape.GetType();
     CheckFlushList(shape);
     FlushList& flushList = m_flushListCollection.back();
+    const Texture* const texture = shape.GetTexture();
     
     switch (shapeType)
     {
         case BaseShape::SHAPE_RECTANGLE:
         case BaseShape::SHAPE_IMAGE:
         {
+            Logger::FLogDebug("-----Drawing a rect or an image");
             const Rect& rect = static_cast<const Rect&>(shape);
             //construct the primitive to draw; each vertex refers to a
-            //point in the primitive (a rectangle)
+            //point in the primitive (a rectangle)        
+            std::vector<Vertex> vertices = rect.GetTransform().Apply(rect.GetVertices());
             
-            Vertex vertices[4];
-
-            vertices[0].pos = rect.GetPos();
-            vertices[0].pos.z = 0;
-            
-            vertices[1].pos.x = rect.GetPos().x+rect.GetSize().width;
-            vertices[1].pos.y = rect.GetPos().y;
-            vertices[1].pos.z = 0;
-            
-            vertices[2].pos = rect.GetPos()+rect.GetSize();         
-            vertices[2].pos.z = 0;
-            
-            vertices[3].pos.x = rect.GetPos().x;
-            vertices[3].pos.y = rect.GetPos().y+rect.GetSize().height;
-            vertices[3].pos.z = 0;
-            //~ printf("x, y, w, h = %.1f %.1f %.1f %.1f",
-                //~ rect.GetPos().x, rect.GetPos().y, rect.GetSize().width, rect.GetSize().height);
 // if the rect is not filled, subtract 1 from bottom right coordinates 
 // to make sure that the non-filled rect is drawn consistently with the
 // filled one. 
@@ -396,40 +400,28 @@ void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
                 vertices[2].pos.y -= 1.0f;
                 vertices[3].pos.y -= 1.0f;
             }            
-            sgw::Logger::FLogTrace("pos 0 x = %.1f",vertices[0].pos.x);
-            const Texture* const texture = rect.GetTexture();
-            if (texture)
-            {
-                vertices[0].texCoord.x = 0.0f;
-                vertices[0].texCoord.y = 1.0f;
-                
-                vertices[1].texCoord.x = 1.0f;
-                vertices[1].texCoord.y = 1.0f;
-                
-                vertices[2].texCoord.x = 1.0f;
-                vertices[2].texCoord.y = 0.0f;
-                
-                vertices[3].texCoord.x = 0.0f;
-                vertices[3].texCoord.y = 0.0f;
-            }            
+            //sgw::Logger::FLogTrace("pos 0 x = %.1f",vertices[0].pos.x);     
             
-            
+            //Logger::FLog(Logger::LOG_LEVEL_INFO,flushList.indices);
             unsigned int verticesSize = flushList.vertices.size();
             for (int i = 0; i < 4; i++)
             {
                 vertices[i].clr = rect.GetColor();
-                flushList.vertices.push_back(vertices[i]);
             }
+            flushList.vertices.insert(flushList.vertices.end(),vertices.begin(),vertices.end());
+            sgw::Logger::FLog(sgw::Logger::LOG_LEVEL_DEBUG,"Rect vertices:");
+            sgw::Logger::FLog(sgw::Logger::LOG_LEVEL_DEBUG, vertices);
             if (rect.IsFilled())
             {
                 // if the rect is filled, draw it as a list of triangles
                 // every three points correspond to one triangle.
                 flushList.indices.push_back(verticesSize);
+                flushList.indices.push_back(verticesSize+2);
                 flushList.indices.push_back(verticesSize+1);
-                flushList.indices.push_back(verticesSize+2);
+                
                 flushList.indices.push_back(verticesSize);
+                flushList.indices.push_back(verticesSize+3); 
                 flushList.indices.push_back(verticesSize+2);
-                flushList.indices.push_back(verticesSize+3);    
             }
             else
             {
@@ -473,38 +465,57 @@ void sgw::OpenGLRenderer::Draw(const BaseShape& shape)
         break;
         
         case BaseShape::SHAPE_TRIANGLE:
+        case BaseShape::SHAPE_OCTAHEDRON:
+        case BaseShape::SHAPE_SPHERE:
         {
-            const Triangle& tr = static_cast<const Triangle&>(shape);
+            sgw::Logger::FLogDebug("------Drawing triangles");
+            //const Triangle& tr = static_cast<const Triangle&>(shape);
             
-            std::vector<Vec3> points = tr.GetPoints();
+            //Logger::FLogTrace("Draw : triangle points before transform:");
+            //Logger::FLog(Logger::LOG_LEVEL_TRACE, points);
+            std::vector<Vertex> vertices = shape.GetTransform().Apply(shape.GetVertices());
+            //Logger::FLogDebug("Draw : triangle vertices after transform:");
+            //Logger::FLog(Logger::LOG_LEVEL_DEBUG, vertices);
+            const int sz = vertices.size();
+            //Logger::FLogInfo("Triangles vertices:");
+            //Logger::FLog(Logger::LOG_LEVEL_INFO, vertices);
+            const unsigned int verticesSize = flushList.vertices.size();
             
-            Vertex vertices[3];
-
-            vertices[0].pos = points[0];
-            vertices[1].pos = points[1];
-            vertices[2].pos = points[2];
-                  
-            unsigned int verticesSize = flushList.vertices.size();
-            for (int i = 0; i < 3; i++)
+            
+            for (int i = 0; i < sz; i++)
             {
-                vertices[i].clr = tr.GetColor();
-                flushList.vertices.push_back(vertices[i]);
-                if (tr.IsFilled())
+                vertices[i].clr = shape.GetColor();
+                //~ if (shapeType == BaseShape::SHAPE_SPHERE && texture) 
+                //~ {
+                    //~ if (vertices[i].texCoord.x == 1.0f)
+                        //~ vertices[i].clr = 0x0000FFFF;
+                //~ }
+                //flushList.vertices.push_back(vertices[i]);
+                if (shape.IsFilled()) 
+                {
+                    //Logger::FLogInfo("filled");
                     flushList.indices.push_back(verticesSize+i);
+                }
+                else
+                {
+                    Logger::FLogInfo("not filled");
+                    if ((i+1) % 3 != 0)
+                    {
+                        flushList.indices.push_back(verticesSize+i);
+                        flushList.indices.push_back(verticesSize+i+1);
+                    }
+                    else
+                    {
+                        flushList.indices.push_back(verticesSize+i);
+                        flushList.indices.push_back(verticesSize+i-2);
+                    }               
+                }
             }
-            
-            if (!tr.IsFilled())
-            {
-                flushList.indices.push_back(verticesSize);
-                flushList.indices.push_back(verticesSize+1);
-                
-                flushList.indices.push_back(verticesSize+1);
-                flushList.indices.push_back(verticesSize+2);
-                
-                flushList.indices.push_back(verticesSize);
-                flushList.indices.push_back(verticesSize+2);                
-            }
+            //Logger::FLog(Logger::LOG_LEVEL_INFO,flushList.indices);
+            flushList.vertices.insert(flushList.vertices.end(),vertices.begin(),vertices.end());
+            //Logger::FLogInfo(flushList.vertices);                  
         }
+
         break;
     }
 }

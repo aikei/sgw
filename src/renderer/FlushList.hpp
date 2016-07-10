@@ -16,7 +16,7 @@ typedef std::vector<unsigned int> IndicesVector;
 
 struct FlushList
 {
-    int type;
+    int type, textureType;
     VerticesVector vertices;
     IndicesVector indices;
     const Texture* texture;

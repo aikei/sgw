@@ -4,7 +4,7 @@
 #include <math.h>
 #include <cstring>
 #include "Vec2.hpp"
-#include "Size.hpp"
+#include "Size3D.hpp"
 
 namespace sgw
 {
@@ -153,6 +153,14 @@ struct Vec3
         ret.z = z+other;
         return ret;
     }
+    
+    Vec3& operator+=(const float& other)
+    { 
+        x = x+other;
+        y = y+other;
+        z = z+other;
+        return *this;
+    }    
 
     Vec3 operator*(const Vec3& other) const
     {
@@ -216,7 +224,7 @@ struct Vec3
     
     Vec3 operator-(const Size& size) const
     { 
-        Vec2 ret;
+        Vec3 ret;
         ret.x = x-size.width;
         ret.y = y-size.height;
         return ret;
@@ -231,7 +239,7 @@ struct Vec3
     
     Vec3 operator+(const Size& size) const
     { 
-        Vec2 ret;
+        Vec3 ret;
         ret.x = x+size.width;
         ret.y = y+size.height;
         return ret;
@@ -242,14 +250,49 @@ struct Vec3
         x += size.width;
         y += size.height;
         return *this;
-    }    
+    }
     
-    void Normalize()
+    Vec3 operator-(const Size3D& size) const
+    { 
+        Vec3 ret;
+        ret.x = x-size.width;
+        ret.y = y-size.height;
+        ret.z = z-size.depth;
+        return ret;
+    }
+
+    Vec3& operator-=(const Size3D& size)
+    {
+        x -= size.width;
+        y -= size.height;
+        x -= size.depth;
+        return *this;
+    }
+    
+    Vec3 operator+(const Size3D& size) const
+    { 
+        Vec3 ret;
+        ret.x = x+size.width;
+        ret.y = y+size.height;
+        ret.z = z+size.depth;
+        return ret;
+    }
+
+    Vec3& operator+=(const Size3D& size)
+    {
+        x += size.width;
+        y += size.height;
+        z += size.depth;
+        return *this;
+    }       
+    
+    Vec3& Normalize()
     {
         float length = GetLength();
         if (length == 0)
-            return;
+            return *this;
         *this = (*this)/length;
+        return *this;
     }
     
     void Rotate(float angle, const Vec3& axis);

@@ -13,8 +13,10 @@ public:
     inline unsigned int GetWidth() const { return m_width; }
     inline unsigned int GetHeight() const { return m_height; }
     inline unsigned char* GetRawImageData() const { return m_pImageData; }
+    inline unsigned int GetNumberOfComponents() const { return m_numberOfComponents; }
 protected:
     unsigned int m_width, m_height;
+    unsigned int m_numberOfComponents;
     unsigned char* m_pImageData;
     void MakeConversions();
     void FileLoad(const char* fileName);

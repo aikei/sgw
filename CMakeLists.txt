@@ -72,10 +72,16 @@ include_directories(
 
 add_library(sgw 
     src/utils/utils.cpp
-    src/app/App.cpp src/app/BaseApp.cpp src/app/GlutApp.cpp src/app/GlfwApp.cpp
+    src/app/App.cpp 
+    src/app/BaseApp.cpp src/app/GlutApp.cpp src/app/GlfwApp.cpp
     src/renderer/OpenGLRenderer.cpp src/renderer/BaseRenderer.cpp
     src/math/math.cpp
-    src/renderer/image/Texture.cpp src/renderer/image/Image.cpp src/renderer/shape/Triangle.cpp
+    src/math/Transform.cpp
+    src/renderer/image/Texture.cpp 
+    src/renderer/image/Image.cpp src/renderer/shape/Triangle.cpp 
+    src/renderer/shape/Octahedron.cpp 
+    src/renderer/shape/Sphere.cpp 
+    src/renderer/shape/BaseShape.cpp
     src/utils/Logger.cpp)
 target_link_libraries(sgw glfw ${LIBS})
 # target_link_libraries(sgw ${GLFW_STATIC_LIBRARIES} ${LIBS})

@@ -17,6 +17,8 @@ sgw::App::App(float windowWidth, float windowHeight, int videoBackend)
     AppData appData;
     appData.windowSize.width = windowWidth;
     appData.windowSize.height = windowHeight;
+    appData.screenCenter.x = windowWidth/2.0f;
+    appData.screenCenter.y = windowHeight/2.0f;
     appData.videoBackend = videoBackend;
     m_pIApp = new GlfwApp();
     m_pIApp->SetAppData(appData);

@@ -21,7 +21,7 @@ protected:
        
     const int numRuns = 100;
     const int faultTolerance = 4;
-    std::unique_ptr<sgw::Texture> pTexture;
+    std::shared_ptr<sgw::Texture> pTexture;
     
     DrawTest()
     {
@@ -66,7 +66,7 @@ protected:
                 
             case sgw::BaseShape::SHAPE_IMAGE:
                 {
-                    shpPtr.reset(new sgw::Image(*pTexture));
+                    shpPtr.reset(new sgw::Image(pTexture));
                     shpPtr->SetPos(x,y);
                 }
                 break;
