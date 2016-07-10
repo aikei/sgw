@@ -36,7 +36,7 @@ void sgw::Sphere::InitSphere(const Vec3& center, float radius, unsigned int spli
         {
             trianglePoints[j].Normalize();
             
-            trianglePoints[j].texCoord.x = (atan2(trianglePoints[j].pos.z, trianglePoints[j].pos.x)/(2.0f*sgw::PI))+0.625f;
+            trianglePoints[j].texCoord.x = (atan2(trianglePoints[j].pos.x, trianglePoints[j].pos.z)/(2.0f*sgw::PI))+0.625f;
             
             if (trianglePoints[j].texCoord.x > 1.0f)
                 trianglePoints[j].texCoord.x -= 1.0f;
